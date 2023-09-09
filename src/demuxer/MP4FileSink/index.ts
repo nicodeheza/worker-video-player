@@ -1,4 +1,5 @@
-import {ISOFile, MP4ArrayBuffer, SetStatus} from '../../types'
+import {ISOFile, MP4ArrayBuffer} from 'mp4box'
+import {SetStatus} from '../../types'
 
 // https://w3c.github.io/webcodecs/samples/video-decode-display/
 

@@ -1,3 +1,5 @@
 import MP4Box from 'mp4box'
 
-console.log(MP4Box.createFile())
+const file = MP4Box.createFile()
+console.log(file)
+console.log(file.getTrackById(0))
