@@ -47,7 +47,7 @@ class Player {
 
 	private handleFrame(frame: VideoFrame) {
 		if (!this.pendingFrame) {
-			requestAnimationFrame(this.sendFrame)
+			requestAnimationFrame(() => this.sendFrame())
 		} else {
 			this.pendingFrame.close()
 		}
@@ -64,7 +64,8 @@ class Player {
 			this.pendingStatus[type] = message
 		} else {
 			this.pendingStatus = {[type]: message}
-			requestAnimationFrame(this.statusAnimationFrame)
+
+			requestAnimationFrame(() => this.statusAnimationFrame())
 		}
 	}
 
