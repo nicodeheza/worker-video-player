@@ -1,14 +1,14 @@
 import {MP4Demuxer} from '../demuxer'
 
 class Player {
-	private verbose: boolean
+	private verbose?: boolean
 	private pendingStatus: Record<string, string> | null = null
 	private startTime: number | null = null
 	private pendingFrame: VideoFrame | null = null
 	private frameCount = 0
 	private decoder: VideoDecoder
 
-	constructor(uri: string, verbose: boolean) {
+	constructor(uri: string, verbose?: boolean) {
 		this.verbose = verbose
 
 		this.decoder = new VideoDecoder({
