@@ -4,7 +4,7 @@ import FrameQueue from './FrameQueue'
 class Player {
 	private frameQueue
 	private baseTime = 0
-	// private pendingFrame?: VideoFrame
+	private pendingFrame?: VideoFrame
 	private underflow = true
 
 	constructor(uri: string, verbose?: boolean) {
@@ -12,15 +12,13 @@ class Player {
 
 		const decoder = new Decoder(uri, verbose)
 		decoder.onFrame = (frame) => {
-			console.log('queue length:', this.frameQueue.length)
 			if (!frame) return
-			// this.onFrame(frame)
 			this.frameQueue.enqueue(frame)
 			if (this.underflow) setTimeout(() => this.handleFrame(), 0)
 		}
 	}
 
-	onFrame(frame: VideoFrame | null) {}
+	onFrame(frame: VideoFrame) {}
 
 	private calculateTimeUntilNextFrame(timestamp: number) {
 		if (this.baseTime === 0) this.baseTime = performance.now()
@@ -31,7 +29,7 @@ class Player {
 	private async handleFrame() {
 		this.underflow = this.frameQueue.length === 0
 		if (this.underflow) {
-			// this.pendingFrame?.close()
+			this.pendingFrame?.close()
 			return
 		}
 		const frame = this.frameQueue.dequeue()
@@ -40,14 +38,15 @@ class Player {
 			setTimeout(r, timeUntilNextFrame)
 		})
 
-		this.onFrame(frame)
-		// this.pendingFrame?.close()
-		// this.pendingFrame = frame as VideoFrame
+		if (frame) {
+			this.onFrame(frame)
+			this.pendingFrame?.close()
+			this.pendingFrame = frame as VideoFrame
+		}
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
 	play() {
-		// console.log(this.frameQueue.length)
 		this.handleFrame()
 	}
 }

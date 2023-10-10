@@ -1,5 +1,5 @@
 import {DataStream, ISOFile, Info, Sample, Track, createFile} from 'mp4box'
-import {OnChunk, OnConfig, SetStatus} from '../types'
+import {OnChunk, OnConfig} from '../types'
 import {MP4FileSink} from './MP4FileSink'
 
 // https://w3c.github.io/webcodecs/samples/video-decode-display/
@@ -7,26 +7,23 @@ import {MP4FileSink} from './MP4FileSink'
 interface InjectedFunctions {
 	onConfig: OnConfig
 	onChunk: OnChunk
-	setStatus: SetStatus
 }
 
 export class MP4Demuxer {
 	private onConfig: OnConfig
 	private onChunk: OnChunk
-	private setStatus: SetStatus
 	private file: ISOFile
 
-	constructor(uri: string, {onConfig, onChunk, setStatus}: InjectedFunctions) {
+	constructor(uri: string, {onConfig, onChunk}: InjectedFunctions) {
 		this.onConfig = onConfig
 		this.onChunk = onChunk
-		this.setStatus = setStatus
 
 		this.file = createFile()
-		this.file.onError = (error) => setStatus('demux', error)
+		this.file.onError = (error) => console.error('demux', error)
 		this.file.onReady = this.onReady.bind(this)
 		this.file.onSamples = this.onSamples.bind(this)
 
-		const fileSink = new MP4FileSink(this.file, setStatus)
+		const fileSink = new MP4FileSink(this.file)
 		fetch(uri).then((response) => {
 			response.body?.pipeTo(new WritableStream(fileSink, {highWaterMark: 2}))
 		})
@@ -46,7 +43,6 @@ export class MP4Demuxer {
 	}
 
 	private onReady(info: Info) {
-		this.setStatus('demux', 'Ready')
 		const track = info.videoTracks[0]
 
 		this.onConfig({

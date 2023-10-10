@@ -4,7 +4,6 @@ const w = 600
 const h = 600
 
 self.onmessage = async (event) => {
-	// console.log(event)
 	if (event.data.view) {
 		const player = new Player(
 			'https://w3c.github.io/webcodecs/samples/data/bbb_video_avc_frag.mp4',
@@ -15,9 +14,7 @@ self.onmessage = async (event) => {
 		canvas.height = h
 		const ctx = canvas.getContext('2d')
 		player.onFrame = (frame) => {
-			if (!frame) return
 			ctx.drawImage(frame, 0, 0, w, h)
-			frame.close()
 		}
 	}
 }
