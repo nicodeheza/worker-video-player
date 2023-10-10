@@ -23,7 +23,7 @@ class FrameQueue {
 			this.tail = node
 		} else {
 			this.tail.next = node
-			this.tail = node
+			this.tail = this.tail.next
 		}
 
 		this.length++
@@ -31,7 +31,7 @@ class FrameQueue {
 
 	dequeue() {
 		if (!this.head) return null
-		const {frame} = this.head // close???
+		const {frame} = this.head
 		this.head = this.head.next
 
 		this.length--

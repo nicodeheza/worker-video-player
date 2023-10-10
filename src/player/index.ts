@@ -1,80 +1,54 @@
-import {MP4Demuxer} from '../demuxer'
+import Decoder from '../decoder'
+import FrameQueue from './FrameQueue'
 
 class Player {
-	private verbose?: boolean
-	private pendingStatus: Record<string, string> | null = null
-	private startTime: number | null = null
-	private pendingFrame: VideoFrame | null = null
-	private frameCount = 0
-	private decoder: VideoDecoder
+	private frameQueue
+	private baseTime = 0
+	// private pendingFrame?: VideoFrame
+	private underflow = true
 
 	constructor(uri: string, verbose?: boolean) {
-		this.verbose = verbose
+		this.frameQueue = new FrameQueue()
 
-		this.decoder = new VideoDecoder({
-			output: (frame) => {
-				if (this.startTime === null) {
-					this.startTime = performance.now()
-				} else {
-					const elapsed = (performance.now() - this.startTime) / 1000
-					const fps = ++this.frameCount / elapsed
-					this.setStatus('render', `${fps.toFixed(0)} fps`)
-				}
-
-				this.handleFrame(frame)
-			},
-			error: (e) => {
-				this.setStatus('decode', `${e}`)
-			}
-		})
-
-		new MP4Demuxer(uri, {
-			onConfig: (config) => {
-				this.setStatus(
-					'decode',
-					`${config.codec} @ ${config.codedWidth}x${config.codedHeight}`
-				)
-				this.decoder.configure(config)
-			},
-			onChunk: (chunk) => {
-				this.decoder.decode(chunk)
-			},
-			setStatus: this.setStatus
-		})
+		const decoder = new Decoder(uri, verbose)
+		decoder.onFrame = (frame) => {
+			console.log('queue length:', this.frameQueue.length)
+			if (!frame) return
+			// this.onFrame(frame)
+			this.frameQueue.enqueue(frame)
+			if (this.underflow) setTimeout(() => this.handleFrame(), 0)
+		}
 	}
 
 	onFrame(frame: VideoFrame | null) {}
 
-	private handleFrame(frame: VideoFrame) {
-		if (!this.pendingFrame) {
-			requestAnimationFrame(() => this.sendFrame())
-		} else {
-			this.pendingFrame.close()
-		}
-		this.pendingFrame = frame
+	private calculateTimeUntilNextFrame(timestamp: number) {
+		if (this.baseTime === 0) this.baseTime = performance.now()
+		const mediaTime = performance.now() - this.baseTime
+		return Math.max(0, timestamp / 1000 - mediaTime)
 	}
 
-	private sendFrame() {
-		this.onFrame(this.pendingFrame)
-		this.pendingFrame = null
+	private async handleFrame() {
+		this.underflow = this.frameQueue.length === 0
+		if (this.underflow) {
+			// this.pendingFrame?.close()
+			return
+		}
+		const frame = this.frameQueue.dequeue()
+		const timeUntilNextFrame = this.calculateTimeUntilNextFrame(frame?.timestamp || 0)
+		await new Promise((r) => {
+			setTimeout(r, timeUntilNextFrame)
+		})
+
+		this.onFrame(frame)
+		// this.pendingFrame?.close()
+		// this.pendingFrame = frame as VideoFrame
+		setTimeout(() => this.handleFrame(), 0)
 	}
 
-	private setStatus(type: string, message: string) {
-		if (this.pendingStatus) {
-			this.pendingStatus[type] = message
-		} else {
-			this.pendingStatus = {[type]: message}
-
-			requestAnimationFrame(() => this.statusAnimationFrame())
-		}
-	}
-
-	private statusAnimationFrame() {
-		if (this.verbose) {
-			console.log('Player Status:', this.pendingStatus)
-		}
-
-		this.pendingStatus = null
+	play() {
+		// console.log(this.frameQueue.length)
+		this.handleFrame()
 	}
 }
 
