@@ -15,9 +15,21 @@ function App() {
 		}
 	}, [worker])
 
+	function stop() {
+		worker?.postMessage({state: 'pause'})
+	}
+
+	function play() {
+		worker?.postMessage({state: 'play'})
+	}
+
 	return (
 		<>
-			<canvas ref={canvasRef} />
+			{worker && <canvas ref={canvasRef} />}
+			<div>
+				<button onClick={play}>Play</button>
+				<button onClick={stop}>Pause</button>
+			</div>
 		</>
 	)
 }

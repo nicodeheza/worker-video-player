@@ -6,6 +6,7 @@ class Player {
 	private baseTime = 0
 	private pendingFrame?: VideoFrame
 	private underflow = true
+	private isPlaying = true
 
 	constructor(uri: string, verbose?: boolean) {
 		this.frameQueue = new FrameQueue()
@@ -32,22 +33,31 @@ class Player {
 			this.pendingFrame?.close()
 			return
 		}
-		const frame = this.frameQueue.dequeue()
-		const timeUntilNextFrame = this.calculateTimeUntilNextFrame(frame?.timestamp || 0)
-		await new Promise((r) => {
-			setTimeout(r, timeUntilNextFrame)
-		})
+		if (this.isPlaying) {
+			const frame = this.frameQueue.dequeue()
+			const timeUntilNextFrame = this.calculateTimeUntilNextFrame(frame?.timestamp || 0)
+			await new Promise((r) => {
+				setTimeout(r, timeUntilNextFrame)
+			})
 
-		if (frame) {
-			this.onFrame(frame)
-			this.pendingFrame?.close()
-			this.pendingFrame = frame as VideoFrame
+			if (frame) {
+				this.onFrame(frame)
+				this.pendingFrame?.close()
+				this.pendingFrame = frame as VideoFrame
+			}
 		}
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
 	play() {
-		this.handleFrame()
+		this.isPlaying = true
+	}
+
+	//TODO - fix acceleration on pause and play
+	//TODO - loop
+	//TODO - stop
+	pause() {
+		this.isPlaying = false
 	}
 }
 

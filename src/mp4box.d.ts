@@ -86,6 +86,7 @@ declare module 'mp4box' {
 		getTrackById: (id: number) => Trak
 		setExtractionOptions: (trackId: number) => void
 		start: () => void
+		stop: () => void
 	}
 
 	export interface MP4ArrayBuffer extends ArrayBuffer {
