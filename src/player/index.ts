@@ -4,6 +4,7 @@ import FrameQueue from './FrameQueue'
 class Player {
 	private frameQueue
 	private baseTime = 0
+	private pauseTime = 0
 	private pendingFrame?: VideoFrame
 	private underflow = true
 	private isPlaying = true
@@ -50,14 +51,17 @@ class Player {
 	}
 
 	play() {
+		if (this.isPlaying) return
 		this.isPlaying = true
+		this.baseTime += performance.now() - this.pauseTime
 	}
 
-	//TODO - fix acceleration on pause and play
 	//TODO - loop
 	//TODO - stop
 	pause() {
+		if (!this.isPlaying) return
 		this.isPlaying = false
+		this.pauseTime = performance.now()
 	}
 }
 
