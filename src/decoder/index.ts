@@ -2,7 +2,6 @@ import {MP4Demuxer} from '../demuxer'
 
 class Decoder {
 	private decoder: VideoDecoder
-	private isReady = false
 
 	constructor(uri: string, verbose?: boolean) {
 		this.decoder = new VideoDecoder({
@@ -25,13 +24,6 @@ class Decoder {
 	}
 
 	onFrame(frame: VideoFrame | null) {}
-
-	waitReady() {
-		return new Promise((resolve) => {
-			while (!this.isReady) {}
-			resolve(true)
-		})
-	}
 }
 
 export default Decoder
