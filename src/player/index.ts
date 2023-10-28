@@ -29,23 +29,22 @@ class Player {
 	}
 
 	private async handleFrame() {
+		if (!this.isPlaying) return
 		this.underflow = this.frameQueue.length === 0
 		if (this.underflow) {
 			this.pendingFrame?.close()
 			return
 		}
-		if (this.isPlaying) {
-			const frame = this.frameQueue.dequeue()
-			const timeUntilNextFrame = this.calculateTimeUntilNextFrame(frame?.timestamp || 0)
-			await new Promise((r) => {
-				setTimeout(r, timeUntilNextFrame)
-			})
+		const frame = this.frameQueue.dequeue()
+		const timeUntilNextFrame = this.calculateTimeUntilNextFrame(frame?.timestamp || 0)
+		await new Promise((r) => {
+			setTimeout(r, timeUntilNextFrame)
+		})
 
-			if (frame) {
-				this.onFrame(frame)
-				this.pendingFrame?.close()
-				this.pendingFrame = frame as VideoFrame
-			}
+		if (frame) {
+			this.onFrame(frame)
+			this.pendingFrame?.close()
+			this.pendingFrame = frame as VideoFrame
 		}
 		setTimeout(() => this.handleFrame(), 0)
 	}
@@ -54,6 +53,7 @@ class Player {
 		if (this.isPlaying) return
 		this.isPlaying = true
 		this.baseTime += performance.now() - this.pauseTime
+		setTimeout(() => this.handleFrame(), 0)
 	}
 
 	//TODO - loop
