@@ -1,10 +1,8 @@
 import {MP4Demuxer} from '../demuxer'
 
 class Decoder {
-	private decoder: VideoDecoder
-
 	constructor(uri: string, verbose?: boolean) {
-		this.decoder = new VideoDecoder({
+		const decoder = new VideoDecoder({
 			output: (frame) => {
 				this.onFrame(frame)
 			},
@@ -15,10 +13,10 @@ class Decoder {
 
 		new MP4Demuxer(uri, {
 			onConfig: (config) => {
-				this.decoder.configure(config)
+				decoder.configure(config)
 			},
 			onChunk: (chunk) => {
-				this.decoder.decode(chunk)
+				decoder.decode(chunk)
 			}
 		})
 	}
