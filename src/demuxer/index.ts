@@ -43,6 +43,7 @@ export class MP4Demuxer {
 	}
 
 	private onReady(info: Info) {
+		this.onInfoReady(info)
 		const track = info.videoTracks[0]
 
 		this.onConfig({
@@ -55,6 +56,8 @@ export class MP4Demuxer {
 		this.file.setExtractionOptions(track.id)
 		this.file.start()
 	}
+
+	onInfoReady(info: Info) {}
 
 	private onSamples(track_id: number, ref: string, samples: Sample[]) {
 		for (const sample of samples) {

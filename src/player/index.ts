@@ -8,15 +8,25 @@ class Player {
 	private pendingFrame?: VideoFrame
 	private underflow = true
 	private isPlaying = true
+	private decoder: Decoder
+	private canRestart = true
+	loop: boolean | undefined
 
-	constructor(uri: string, verbose?: boolean) {
+	duration: number | undefined
+
+	constructor(uri: string, loop?: boolean) {
+		this.loop = loop
 		this.frameQueue = new FrameQueue()
 
-		const decoder = new Decoder(uri, verbose)
-		decoder.onFrame = (frame) => {
+		this.decoder = new Decoder(uri, loop)
+		this.decoder.onFrame = (frame) => {
 			if (!frame) return
 			this.frameQueue.enqueue(frame)
 			if (this.underflow) setTimeout(() => this.handleFrame(), 0)
+		}
+
+		this.decoder.onInfoReady = (info) => {
+			this.duration = info.duration
 		}
 	}
 
@@ -45,6 +55,24 @@ class Player {
 			this.onFrame(frame)
 			this.pendingFrame?.close()
 			this.pendingFrame = frame as VideoFrame
+
+			const timestamp = frame.timestamp / 1000
+			if (
+				this.loop &&
+				this.canRestart &&
+				this.duration &&
+				timestamp > this.duration / 2
+			) {
+				console.log('restart')
+				this.decoder.restart()
+				this.canRestart = false
+			}
+			if (this.duration && timestamp >= this.duration) {
+				console.log('end')
+				//FIXME
+				this.baseTime = performance.now()
+				this.canRestart = true
+			}
 		}
 		setTimeout(() => this.handleFrame(), 0)
 	}
