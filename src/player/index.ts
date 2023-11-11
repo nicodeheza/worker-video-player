@@ -75,7 +75,7 @@ class Player {
 		this.pendingFrame = frame || undefined
 
 		// console.log(currentTime, '-', this.duration)
-		if (!this.canRestart && this.loop && currentTime >= this.duration!) {
+		if (!this.canRestart && this.loop) {
 			this.canRestart = true
 		}
 
