@@ -9,7 +9,7 @@ class Player {
 	private underflow = true
 	private isPlaying = true
 	private decoder: Decoder
-	private canRestart = true
+	private canRestart = false
 	loop: boolean | undefined
 
 	duration: number | undefined
@@ -25,7 +25,9 @@ class Player {
 			if (this.underflow) setTimeout(() => this.handleFrame(), 0)
 		}
 
+		//TODO - check remove
 		this.decoder.onInfoReady = (info) => {
+			// console.log(info)
 			this.duration = info.duration
 		}
 	}
@@ -41,39 +43,42 @@ class Player {
 	private async handleFrame() {
 		if (!this.isPlaying) return
 		this.underflow = this.frameQueue.length === 0
+
+		console.log('frame length:', this.frameQueue.length)
+
 		if (this.underflow) {
 			this.pendingFrame?.close()
+			this.pendingFrame = undefined
+
+			if (this.canRestart && this.loop) {
+				this.canRestart = false
+				console.log('>>>>>restart')
+				await this.decoder.restart()
+				this.baseTime = performance.now()
+				// console.log('pending:', this.pendingFrame)
+			}
+
 			return
 		}
+
 		const frame = this.frameQueue.dequeue()
 		const timeUntilNextFrame = this.calculateTimeUntilNextFrame(frame?.timestamp || 0)
 		await new Promise((r) => {
 			setTimeout(r, timeUntilNextFrame)
 		})
 
+		const currentTime = (frame?.timestamp ?? 0) / 1000
 		if (frame) {
 			this.onFrame(frame)
-			this.pendingFrame?.close()
-			this.pendingFrame = frame as VideoFrame
-
-			const timestamp = frame.timestamp / 1000
-			if (
-				this.loop &&
-				this.canRestart &&
-				this.duration &&
-				timestamp > this.duration / 2
-			) {
-				console.log('restart')
-				this.decoder.restart()
-				this.canRestart = false
-			}
-			if (this.duration && timestamp >= this.duration) {
-				console.log('end')
-				//FIXME
-				this.baseTime = performance.now()
-				this.canRestart = true
-			}
 		}
+		this.pendingFrame?.close()
+		this.pendingFrame = frame || undefined
+
+		// console.log(currentTime, '-', this.duration)
+		if (!this.canRestart && this.loop && currentTime >= this.duration!) {
+			this.canRestart = true
+		}
+
 		setTimeout(() => this.handleFrame(), 0)
 	}
 

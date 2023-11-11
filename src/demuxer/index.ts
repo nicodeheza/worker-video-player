@@ -45,6 +45,8 @@ export class MP4Demuxer {
 	private onReady(info: Info) {
 		this.onInfoReady(info)
 		const track = info.videoTracks[0]
+		track.movie_duration
+		// console.log('DURATION:', (track.duration / track.timescale) * 1000) //TODO - remove
 
 		this.onConfig({
 			codec: track.codec.startsWith('vp08') ? 'vp8' : track.codec,

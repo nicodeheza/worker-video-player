@@ -1,4 +1,4 @@
-import {Info} from 'mp4box'
+import {Config, Info} from 'mp4box'
 import {MP4Demuxer} from '../demuxer'
 
 class Decoder {
@@ -30,13 +30,19 @@ class Decoder {
 		demuxer.onInfoReady = (info) => {
 			this.onInfoReady(info)
 		}
+		// this.decoder.addEventListener('dequeue', (e) => {
+		// 	console.log(e.currentTarget)
+		// })
 	}
 
 	onInfoReady(info: Info) {}
+
 	onFrame(frame: VideoFrame | null) {}
-	restart() {
+
+	async restart() {
 		if (this.cache.length === 0) return
-		console.log('in restart')
+
+		await this.decoder.flush()
 		this.cache.forEach((chunk) => {
 			this.decoder.decode(chunk)
 		})
