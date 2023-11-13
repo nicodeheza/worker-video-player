@@ -1,3 +1,4 @@
+import {Info} from 'mp4box'
 import Decoder from '../decoder'
 import FrameQueue from './FrameQueue'
 
@@ -11,8 +12,7 @@ class Player {
 	private decoder: Decoder
 	private canRestart = false
 	loop: boolean | undefined
-
-	duration: number | undefined
+	info?: Info
 
 	constructor(uri: string, loop?: boolean) {
 		this.loop = loop
@@ -25,10 +25,8 @@ class Player {
 			if (this.underflow) setTimeout(() => this.handleFrame(), 0)
 		}
 
-		//TODO - check remove
 		this.decoder.onInfoReady = (info) => {
-			// console.log(info)
-			this.duration = info.duration
+			this.info = info
 		}
 	}
 
