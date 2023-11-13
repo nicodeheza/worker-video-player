@@ -82,7 +82,7 @@ class Player {
 	}
 
 	//TODO - stop
-	//TODO - Replay
+	//TODO - Replay / Restart
 	//TODO - set speed
 	pause() {
 		if (!this.isPlaying) return

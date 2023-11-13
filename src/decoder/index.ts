@@ -38,7 +38,7 @@ class Decoder {
 
 	onFrame(frame: VideoFrame | null) {}
 
-	async restart() {
+	restart() {
 		if (this.cache.length === 0 || !this.config) return
 
 		this.decoder.reset()
