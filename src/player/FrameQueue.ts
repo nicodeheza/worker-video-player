@@ -36,6 +36,8 @@ class FrameQueue {
 
 		this.length--
 
+		if (this.length === 0) this.tail = null
+
 		return frame
 	}
 }
