@@ -4,6 +4,7 @@ import {MP4Demuxer} from '../demuxer'
 class Decoder {
 	private cache: EncodedVideoChunk[] = []
 	private decoder: VideoDecoder
+	private config?: Config
 
 	constructor(uri: string, loop?: boolean) {
 		this.decoder = new VideoDecoder({
@@ -17,6 +18,7 @@ class Decoder {
 
 		const demuxer = new MP4Demuxer(uri, {
 			onConfig: (config) => {
+				this.config = config
 				this.decoder.configure(config)
 			},
 			onChunk: (chunk) => {
@@ -30,9 +32,6 @@ class Decoder {
 		demuxer.onInfoReady = (info) => {
 			this.onInfoReady(info)
 		}
-		// this.decoder.addEventListener('dequeue', (e) => {
-		// 	console.log(e.currentTarget)
-		// })
 	}
 
 	onInfoReady(info: Info) {}
@@ -40,9 +39,11 @@ class Decoder {
 	onFrame(frame: VideoFrame | null) {}
 
 	async restart() {
-		if (this.cache.length === 0) return
+		if (this.cache.length === 0 || !this.config) return
 
-		await this.decoder.flush()
+		this.decoder.reset()
+		this.decoder.configure(this.config)
+
 		this.cache.forEach((chunk) => {
 			this.decoder.decode(chunk)
 		})

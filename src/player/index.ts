@@ -44,18 +44,14 @@ class Player {
 		if (!this.isPlaying) return
 		this.underflow = this.frameQueue.length === 0
 
-		console.log('frame length:', this.frameQueue.length)
-
 		if (this.underflow) {
 			this.pendingFrame?.close()
 			this.pendingFrame = undefined
 
 			if (this.canRestart && this.loop) {
 				this.canRestart = false
-				console.log('>>>>>restart')
 				await this.decoder.restart()
 				this.baseTime = performance.now()
-				// console.log('pending:', this.pendingFrame)
 			}
 
 			return
@@ -67,14 +63,12 @@ class Player {
 			setTimeout(r, timeUntilNextFrame)
 		})
 
-		const currentTime = (frame?.timestamp ?? 0) / 1000
 		if (frame) {
 			this.onFrame(frame)
 		}
 		this.pendingFrame?.close()
 		this.pendingFrame = frame || undefined
 
-		// console.log(currentTime, '-', this.duration)
 		if (!this.canRestart && this.loop) {
 			this.canRestart = true
 		}
@@ -89,7 +83,6 @@ class Player {
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
-	//TODO - loop
 	//TODO - stop
 	pause() {
 		if (!this.isPlaying) return
