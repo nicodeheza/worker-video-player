@@ -48,7 +48,7 @@ class Player {
 
 			if (this.canRestart && this.loop) {
 				this.canRestart = false
-				await this.decoder.restart()
+				this.decoder.restart()
 				this.baseTime = performance.now()
 			}
 
@@ -82,6 +82,8 @@ class Player {
 	}
 
 	//TODO - stop
+	//TODO - Replay
+	//TODO - set speed
 	pause() {
 		if (!this.isPlaying) return
 		this.isPlaying = false
