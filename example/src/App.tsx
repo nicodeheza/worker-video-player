@@ -15,7 +15,7 @@ function App() {
 		}
 	}, [worker])
 
-	function stop() {
+	function pause() {
 		worker?.postMessage({state: 'pause'})
 	}
 
@@ -23,12 +23,17 @@ function App() {
 		worker?.postMessage({state: 'play'})
 	}
 
+	function stop() {
+		worker?.postMessage({state: 'stop'})
+	}
+
 	return (
 		<>
 			{worker && <canvas ref={canvasRef} />}
 			<div>
 				<button onClick={play}>Play</button>
-				<button onClick={stop}>Pause</button>
+				<button onClick={pause}>Pause</button>
+				<button onClick={stop}>Stop</button>
 			</div>
 		</>
 	)

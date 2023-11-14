@@ -11,6 +11,7 @@ class Player {
 	private isPlaying = true
 	private decoder: Decoder
 	private canRestart = false
+	private isStop = false
 	loop: boolean | undefined
 	info?: Info
 
@@ -23,6 +24,7 @@ class Player {
 			if (!frame) return
 			this.frameQueue.enqueue(frame)
 			if (this.underflow) setTimeout(() => this.handleFrame(), 0)
+			if (this.underflow && this.isStop) setTimeout(() => this.pause(), 0)
 		}
 
 		this.decoder.onInfoReady = (info) => {
@@ -70,24 +72,36 @@ class Player {
 		if (!this.canRestart && this.loop) {
 			this.canRestart = true
 		}
-
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
 	play() {
 		if (this.isPlaying) return
 		this.isPlaying = true
+		this.isStop = false
 		this.baseTime += performance.now() - this.pauseTime
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
-	//TODO - stop
+	//TODO - AutoPlay option
 	//TODO - Replay / Restart
 	//TODO - set speed
 	pause() {
 		if (!this.isPlaying) return
 		this.isPlaying = false
 		this.pauseTime = performance.now()
+	}
+
+	//FIXME - Sometimes is replaying
+	stop() {
+		this.isStop = true
+		this.play()
+		while (this.frameQueue.length > 0) {
+			const frame = this.frameQueue.dequeue()
+			frame?.close()
+		}
+		this.decoder.restart()
+		this.baseTime = performance.now()
 	}
 }
 
