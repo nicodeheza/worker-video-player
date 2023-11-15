@@ -24,7 +24,6 @@ class Player {
 			if (!frame) return
 			this.frameQueue.enqueue(frame)
 			if (this.underflow) setTimeout(() => this.handleFrame(), 0)
-			if (this.underflow && this.isStop) setTimeout(() => this.pause(), 0)
 		}
 
 		this.decoder.onInfoReady = (info) => {
@@ -78,9 +77,9 @@ class Player {
 	play() {
 		if (this.isPlaying) return
 		this.isPlaying = true
-		this.isStop = false
 		this.baseTime += performance.now() - this.pauseTime
 		setTimeout(() => this.handleFrame(), 0)
+		this.isStop = false
 	}
 
 	//TODO - AutoPlay option
@@ -92,16 +91,22 @@ class Player {
 		this.pauseTime = performance.now()
 	}
 
-	//FIXME - Sometimes is replaying
 	stop() {
-		this.isStop = true
+		if (this.isStop || !this.info) return
 		this.play()
+		this.isStop = true
 		while (this.frameQueue.length > 0) {
 			const frame = this.frameQueue.dequeue()
 			frame?.close()
 		}
 		this.decoder.restart()
 		this.baseTime = performance.now()
+
+		const trakData = this.info.tracks[0]
+		const {nb_samples, movie_duration, movie_timescale} = trakData
+		const fps = nb_samples / (movie_duration / movie_timescale)
+
+		setTimeout(() => this.pause(), (1000 / fps) * 2)
 	}
 }
 

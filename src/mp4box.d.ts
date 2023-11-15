@@ -15,6 +15,7 @@ declare module 'mp4box' {
 		movie_duration: number
 		layer: number
 		alternate_group: number
+		movie_timescale: number
 		volume: number
 		track_width: number
 		track_height: number
