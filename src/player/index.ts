@@ -2,6 +2,11 @@ import {Info} from 'mp4box'
 import Decoder from '../decoder'
 import FrameQueue from './FrameQueue'
 
+interface Options {
+	loop?: boolean
+	autoPlay?: boolean
+}
+
 class Player {
 	private frameQueue
 	private baseTime = 0
@@ -15,11 +20,12 @@ class Player {
 	loop: boolean | undefined
 	info?: Info
 
-	constructor(uri: string, loop?: boolean) {
-		this.loop = loop
+	constructor(uri: string, options?: Options) {
+		const autoPlay = options?.autoPlay || false
+		this.loop = options?.loop || false
 		this.frameQueue = new FrameQueue()
 
-		this.decoder = new Decoder(uri, loop)
+		this.decoder = new Decoder(uri, this.loop)
 		this.decoder.onFrame = (frame) => {
 			if (!frame) return
 			this.frameQueue.enqueue(frame)
@@ -28,6 +34,10 @@ class Player {
 
 		this.decoder.onInfoReady = (info) => {
 			this.info = info
+		}
+
+		if (!autoPlay) {
+			this.pause()
 		}
 	}
 
@@ -82,8 +92,7 @@ class Player {
 		this.isStop = false
 	}
 
-	//TODO - AutoPlay option
-	//TODO - Replay / Restart
+	//TODO - Replay / Restart on end
 	//TODO - set speed
 	pause() {
 		if (!this.isPlaying) return

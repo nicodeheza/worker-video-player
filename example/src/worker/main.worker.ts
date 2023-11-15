@@ -8,7 +8,7 @@ import Player from '../../../src/index'
 // 	true
 // )
 // const player = new Player('../../public/test.mp4', true)
-const player = new Player('../../public/loopTest.mp4', true)
+const player = new Player('../../public/loopTest.mp4', {loop: true, autoPlay: true})
 self.onmessage = async (event) => {
 	if (event.data.view) {
 		const canvas = event.data.view
