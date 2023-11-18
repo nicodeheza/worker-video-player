@@ -112,7 +112,6 @@ class Player {
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
-	//TODO - fix stop
 	//TODO - set speed
 	//TODO - read only variables
 	pause() {
@@ -129,8 +128,8 @@ class Player {
 			const frame = this.frameQueue.dequeue()
 			frame?.close()
 		}
-		this.decoder.restart()
-		this.baseTime = performance.now()
+
+		this.onRestart()
 
 		const trakData = this.info.tracks[0]
 		const {nb_samples, movie_duration, movie_timescale} = trakData
