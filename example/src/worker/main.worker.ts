@@ -5,10 +5,10 @@ import Player from '../../../src/index'
 
 // const player = new Player(
 // 	'https://w3c.github.io/webcodecs/samples/data/bbb_video_avc_frag.mp4',
-// 	true
+// 	{autoPlay: true}
 // )
-// const player = new Player('../../public/test.mp4', true)
-const player = new Player('../../public/loopTest.mp4', {loop: true, autoPlay: true})
+// const player = new Player('../../public/test.mp4', {autoPlay: true})
+const player = new Player('../../public/loopTest.mp4', {loop: false, autoPlay: true})
 self.onmessage = async (event) => {
 	if (event.data.view) {
 		const canvas = event.data.view

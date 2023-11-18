@@ -17,6 +17,8 @@ class Player {
 	private decoder: Decoder
 	private canRestart = false
 	private isStop = false
+	private totalFrames = -1
+	private frameCount = 0
 	loop: boolean | undefined
 	info?: Info
 
@@ -34,6 +36,7 @@ class Player {
 
 		this.decoder.onInfoReady = (info) => {
 			this.info = info
+			this.totalFrames = info.tracks[0].nb_samples - 2
 		}
 
 		if (!autoPlay) {
@@ -57,10 +60,12 @@ class Player {
 			this.pendingFrame?.close()
 			this.pendingFrame = undefined
 
-			if (this.canRestart && this.loop) {
-				this.canRestart = false
-				this.decoder.restart()
-				this.baseTime = performance.now()
+			if (this.canRestart) {
+				if (this.loop) {
+					this.onRestart()
+				} else {
+					this.isPlaying = false
+				}
 			}
 
 			return
@@ -74,26 +79,42 @@ class Player {
 
 		if (frame) {
 			this.onFrame(frame)
+			this.frameCount += 1
 		}
 		this.pendingFrame?.close()
 		this.pendingFrame = frame || undefined
 
-		if (!this.canRestart && this.loop) {
+		if (this.totalFrames === this.frameCount) {
 			this.canRestart = true
 		}
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
-	play() {
-		if (this.isPlaying) return
-		this.isPlaying = true
-		this.baseTime += performance.now() - this.pauseTime
-		setTimeout(() => this.handleFrame(), 0)
-		this.isStop = false
+	private onRestart() {
+		this.canRestart = false
+		this.decoder.restart()
+		this.baseTime = performance.now()
+		this.frameCount = 0
 	}
 
-	//TODO - Replay / Restart on end
+	play() {
+		if (this.isPlaying) return
+
+		this.isPlaying = true
+		this.isStop = false
+
+		if (this.canRestart) {
+			this.onRestart()
+			return
+		}
+
+		this.baseTime += performance.now() - this.pauseTime
+		setTimeout(() => this.handleFrame(), 0)
+	}
+
+	//TODO - fix stop
 	//TODO - set speed
+	//TODO - read only variables
 	pause() {
 		if (!this.isPlaying) return
 		this.isPlaying = false

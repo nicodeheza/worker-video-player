@@ -22,9 +22,7 @@ class Decoder {
 				this.decoder.configure(config)
 			},
 			onChunk: (chunk) => {
-				if (loop) {
-					this.cache.push(chunk)
-				}
+				this.cache.push(chunk)
 				this.decoder.decode(chunk)
 			}
 		})
