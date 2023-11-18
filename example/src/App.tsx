@@ -1,9 +1,10 @@
-import {useEffect, useRef, useState} from 'react'
+import {ChangeEvent, useEffect, useRef, useState} from 'react'
 import './App.css'
 import Worker from './worker/main.worker?worker'
 
 function App() {
 	const [worker, setWorker] = useState<Worker>()
+	const [speed, setSpeed] = useState(1)
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	useEffect(() => {
@@ -27,6 +28,12 @@ function App() {
 		worker?.postMessage({state: 'stop'})
 	}
 
+	function onSpeedChange(e: ChangeEvent<HTMLInputElement>) {
+		const newValue = Number(e.target.value)
+		setSpeed(newValue)
+		worker?.postMessage({state: 'speedChange', payload: {value: newValue}})
+	}
+
 	return (
 		<>
 			{worker && <canvas ref={canvasRef} />}
@@ -34,6 +41,14 @@ function App() {
 				<button onClick={play}>Play</button>
 				<button onClick={pause}>Pause</button>
 				<button onClick={stop}>Stop</button>
+				<input
+					type="range"
+					min={0.25}
+					max={2}
+					step={0.25}
+					value={speed}
+					onChange={onSpeedChange}
+				/>
 			</div>
 		</>
 	)

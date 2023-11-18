@@ -1,14 +1,11 @@
 import Player from '../../../src/index'
 
-// const w = 600
-// const h = 600
-
 // const player = new Player(
 // 	'https://w3c.github.io/webcodecs/samples/data/bbb_video_avc_frag.mp4',
-// 	{autoPlay: true}
+// 	{autoPlay: true, loop: true}
 // )
 // const player = new Player('../../public/test.mp4', {autoPlay: true})
-const player = new Player('../../public/loopTest.mp4', {loop: false, autoPlay: true})
+const player = new Player('../../public/loopTest.mp4', {loop: true, autoPlay: true})
 self.onmessage = async (event) => {
 	if (event.data.view) {
 		const canvas = event.data.view
@@ -33,6 +30,10 @@ self.onmessage = async (event) => {
 			},
 			stop() {
 				player.stop()
+			},
+			speedChange() {
+				// console.log(event.data.payload.value)
+				player.speed = event.data.payload.value
 			}
 		}
 		actions[state]()

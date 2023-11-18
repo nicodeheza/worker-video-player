@@ -21,6 +21,7 @@ class Player {
 	private frameCount = 0
 	loop: boolean | undefined
 	info?: Info
+	speed = 1
 
 	constructor(uri: string, options?: Options) {
 		const autoPlay = options?.autoPlay || false
@@ -49,7 +50,7 @@ class Player {
 	private calculateTimeUntilNextFrame(timestamp: number) {
 		if (this.baseTime === 0) this.baseTime = performance.now()
 		const mediaTime = performance.now() - this.baseTime
-		return Math.max(0, timestamp / 1000 - mediaTime)
+		return Math.max(0, timestamp / 1000 / this.speed - mediaTime)
 	}
 
 	private async handleFrame() {
@@ -112,7 +113,6 @@ class Player {
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
-	//TODO - set speed
 	//TODO - read only variables
 	pause() {
 		if (!this.isPlaying) return
