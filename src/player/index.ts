@@ -13,14 +13,14 @@ class Player {
 	private pauseTime = 0
 	private pendingFrame?: VideoFrame
 	private underflow = true
-	private isPlaying = true
 	private decoder: Decoder
 	private canRestart = false
-	private isStop = false
 	private totalFrames = -1
-	private frameCount = 0
+	private _isPlaying = true
+	private _isStop = false
+	private _frameCount = 0
+	private _info?: Info
 	loop: boolean | undefined
-	info?: Info
 	speed = 1
 
 	constructor(uri: string, options?: Options) {
@@ -36,7 +36,7 @@ class Player {
 		}
 
 		this.decoder.onInfoReady = (info) => {
-			this.info = info
+			this._info = info
 			this.totalFrames = info.tracks[0].nb_samples - 2
 		}
 
@@ -54,7 +54,7 @@ class Player {
 	}
 
 	private async handleFrame() {
-		if (!this.isPlaying) return
+		if (!this._isPlaying) return
 		this.underflow = this.frameQueue.length === 0
 
 		if (this.underflow) {
@@ -65,7 +65,7 @@ class Player {
 				if (this.loop) {
 					this.onRestart()
 				} else {
-					this.isPlaying = false
+					this._isPlaying = false
 				}
 			}
 
@@ -80,12 +80,12 @@ class Player {
 
 		if (frame) {
 			this.onFrame(frame)
-			this.frameCount += 1
+			this._frameCount += 1
 		}
 		this.pendingFrame?.close()
 		this.pendingFrame = frame || undefined
 
-		if (this.totalFrames === this.frameCount) {
+		if (this.totalFrames === this._frameCount) {
 			this.canRestart = true
 		}
 		setTimeout(() => this.handleFrame(), 0)
@@ -95,14 +95,14 @@ class Player {
 		this.canRestart = false
 		this.decoder.restart()
 		this.baseTime = performance.now()
-		this.frameCount = 0
+		this._frameCount = 0
 	}
 
 	play() {
-		if (this.isPlaying) return
+		if (this._isPlaying) return
 
-		this.isPlaying = true
-		this.isStop = false
+		this._isPlaying = true
+		this._isStop = false
 
 		if (this.canRestart) {
 			this.onRestart()
@@ -113,17 +113,16 @@ class Player {
 		setTimeout(() => this.handleFrame(), 0)
 	}
 
-	//TODO - read only variables
 	pause() {
-		if (!this.isPlaying) return
-		this.isPlaying = false
+		if (!this._isPlaying) return
+		this._isPlaying = false
 		this.pauseTime = performance.now()
 	}
 
 	stop() {
-		if (this.isStop || !this.info) return
+		if (this._isStop || !this._info) return
 		this.play()
-		this.isStop = true
+		this._isStop = true
 		while (this.frameQueue.length > 0) {
 			const frame = this.frameQueue.dequeue()
 			frame?.close()
@@ -131,11 +130,27 @@ class Player {
 
 		this.onRestart()
 
-		const trakData = this.info.tracks[0]
+		const trakData = this._info.tracks[0]
 		const {nb_samples, movie_duration, movie_timescale} = trakData
 		const fps = nb_samples / (movie_duration / movie_timescale)
 
 		setTimeout(() => this.pause(), (1000 / fps) * 2)
+	}
+
+	get info() {
+		return this._info
+	}
+
+	get isPlaying() {
+		return this._isPlaying
+	}
+
+	get isStop() {
+		return this._isStop
+	}
+
+	get frameCount() {
+		return this._frameCount
 	}
 }
 
