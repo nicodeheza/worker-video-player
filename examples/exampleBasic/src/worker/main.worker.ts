@@ -1,4 +1,4 @@
-import Player from '../../../src/index'
+import Player from '../../../../src/index'
 
 // const player = new Player(
 // 	'https://w3c.github.io/webcodecs/samples/data/bbb_video_avc_frag.mp4',
