@@ -28,7 +28,7 @@ class Player {
 		this.loop = options?.loop || false
 		this.frameQueue = new FrameQueue()
 
-		this.decoder = new Decoder(uri, this.loop)
+		this.decoder = new Decoder(uri)
 		this.decoder.onFrame = (frame) => {
 			if (!frame) return
 			this.frameQueue.enqueue(frame)

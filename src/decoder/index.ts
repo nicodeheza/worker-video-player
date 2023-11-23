@@ -6,7 +6,7 @@ class Decoder {
 	private decoder: VideoDecoder
 	private config?: Config
 
-	constructor(uri: string, loop?: boolean) {
+	constructor(uri: string) {
 		this.decoder = new VideoDecoder({
 			output: (frame) => {
 				this.onFrame(frame)
