@@ -1,11 +1,6 @@
-import Player from '../../../../src/index'
+import VideoWorker from './video.worker?worker'
 
-// const player = new Player(
-// 	'https://w3c.github.io/webcodecs/samples/data/bbb_video_avc_frag.mp4',
-// 	{autoPlay: true, loop: true}
-// )
-// const player = new Player('../../public/test.mp4', {autoPlay: true})
-// const player = new Player('../../public/loopTest.mp4', {loop: true, autoPlay: true})
+const videoURL = '/loopTest.mp4'
 const Xnum = 3
 const Ynum = 3
 const originalW = 720
@@ -15,9 +10,12 @@ const canvasH = originalH * 2
 const videoW = canvasW / Xnum
 const videoH = canvasH / Ynum
 
-const videos = new Array(Xnum * Ynum)
-	.fill(true)
-	.map(() => new Player('../../public/loopTest.mp4', {loop: true, autoPlay: true}))
+const videosWorkers = new Array(Xnum * Ynum).fill(true).map(() => new VideoWorker())
+
+videosWorkers.forEach((worker) => {
+	worker.postMessage({url: videoURL})
+	worker.onerror = (e) => console.error(e)
+})
 
 self.onmessage = async (event) => {
 	if (event.data.view) {
@@ -26,11 +24,14 @@ self.onmessage = async (event) => {
 		canvas.height = canvasH
 		const ctx = canvas.getContext('2d')
 
-		videos.forEach((video, i) => {
-			video.onFrame = (frame) => {
-				const x = (i % Ynum) * videoW
-				const y = (i / Ynum) * videoH - videoH
-				ctx.drawImage(frame, x, y, videoW, videoH)
+		videosWorkers.forEach((worker, i) => {
+			worker.onmessage = async (event) => {
+				if (event.data.frame) {
+					const x = (i % Xnum) * videoW
+					const y = Math.floor(i / Xnum) * videoH
+					ctx.drawImage(event.data.frame, x, y, videoW, videoH)
+					event.data.frame.close()
+				}
 			}
 		})
 	}
