@@ -11,7 +11,6 @@ class Player {
 	private frameQueue
 	private baseTime = 0
 	private pauseTime = 0
-	private pendingFrame?: VideoFrame
 	private underflow = true
 	private decoder: Decoder
 	private canRestart = false
@@ -58,9 +57,6 @@ class Player {
 		this.underflow = this.frameQueue.length === 0
 
 		if (this.underflow) {
-			this.pendingFrame?.close()
-			this.pendingFrame = undefined
-
 			if (this.canRestart) {
 				if (this.loop) {
 					this.onRestart()
@@ -82,8 +78,6 @@ class Player {
 			this.onFrame(frame)
 			this._frameCount += 1
 		}
-		this.pendingFrame?.close()
-		this.pendingFrame = frame || undefined
 
 		if (this.totalFrames === this._frameCount) {
 			this.canRestart = true

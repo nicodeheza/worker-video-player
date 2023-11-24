@@ -16,6 +16,7 @@ self.onmessage = async (event) => {
 			canvas.width = frame.displayWidth
 			canvas.height = frame.displayHeight
 			ctx.drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight)
+			frame.close()
 		}
 	}
 
