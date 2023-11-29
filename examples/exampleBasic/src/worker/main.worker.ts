@@ -5,18 +5,18 @@ import Player from '../../../../src/index'
 // 	{autoPlay: true, loop: true}
 // )
 // const player = new Player('../../public/test.mp4', {autoPlay: true})
-const player = new Player('../../public/loopTest.mp4', {loop: true, autoPlay: true})
+const player = new Player('../../public/loopTest.json', {loop: true, autoPlay: true})
 self.onmessage = async (event) => {
 	if (event.data.view) {
 		const canvas = event.data.view
 		// canvas.width = w
 		// canvas.height = h
 		const ctx = canvas.getContext('2d')
-		player.onFrame = (frame) => {
-			canvas.width = frame.displayWidth
-			canvas.height = frame.displayHeight
-			ctx.drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight)
-			frame.close()
+		player.onFrame = ([data, image]) => {
+			canvas.width = data.width
+			canvas.height = data.height
+
+			ctx.drawImage(image, 0, 0, data.width, data.height)
 		}
 	}
 

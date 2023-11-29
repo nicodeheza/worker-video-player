@@ -1,6 +1,5 @@
 import {Info} from 'mp4box'
-import Decoder from '../decoder'
-import FrameQueue from './FrameQueue'
+import {Frame, _Frame} from '../types'
 
 interface Options {
 	loop?: boolean
@@ -8,11 +7,10 @@ interface Options {
 }
 
 class Player {
-	private frameQueue
+	private frames?: _Frame[]
 	private baseTime = 0
 	private pauseTime = 0
 	private underflow = true
-	private decoder: Decoder
 	private canRestart = false
 	private totalFrames = -1
 	private _isPlaying = true
@@ -25,59 +23,53 @@ class Player {
 	constructor(uri: string, options?: Options) {
 		const autoPlay = options?.autoPlay || false
 		this.loop = options?.loop || false
-		this.frameQueue = new FrameQueue()
 
-		this.decoder = new Decoder(uri)
-		this.decoder.onFrame = (frame) => {
-			if (!frame) return
-			this.frameQueue.enqueue(frame)
-			if (this.underflow) setTimeout(() => this.handleFrame(), 0)
-		}
-
-		this.decoder.onInfoReady = (info) => {
-			this._info = info
-			this.totalFrames = info.tracks[0].nb_samples - 2
-		}
+		fetch(uri)
+			.then((data) => data.json())
+			.then((frames) => {
+				this.frames = frames
+				this.totalFrames = frames.length
+				setTimeout(() => this.handleFrame(), 0)
+			})
 
 		if (!autoPlay) {
 			this.pause()
 		}
 	}
 
-	onFrame(frame: VideoFrame) {}
+	onFrame(frame: Frame) {}
 
 	private calculateTimeUntilNextFrame(timestamp: number) {
 		if (this.baseTime === 0) this.baseTime = performance.now()
 		const mediaTime = performance.now() - this.baseTime
-		return Math.max(0, timestamp / 1000 / this.speed - mediaTime)
+		return Math.max(0, timestamp / this.speed - mediaTime)
 	}
 
 	private async handleFrame() {
-		if (!this._isPlaying) return
-		this.underflow = this.frameQueue.length === 0
+		if (!this._isPlaying || !this.frames) return
+		this.underflow = this.frameCount === this.totalFrames
 
 		if (this.underflow) {
-			if (this.canRestart) {
-				if (this.loop) {
-					this.onRestart()
-				} else {
-					this._isPlaying = false
-				}
+			this.canRestart = true
+			if (this.loop) {
+				this.onRestart()
+			} else {
+				this._isPlaying = false
 			}
-
-			return
 		}
 
-		const frame = this.frameQueue.dequeue()
-		const timeUntilNextFrame = this.calculateTimeUntilNextFrame(frame?.timestamp || 0)
+		const frame = this.frames[this.frameCount]
+		const image = await fetch(frame[1])
+			.then((data) => data.blob())
+			.then((blob) => createImageBitmap(blob))
+
+		const timeUntilNextFrame = this.calculateTimeUntilNextFrame(frame[0].timestamp)
 		await new Promise((r) => {
 			setTimeout(r, timeUntilNextFrame)
 		})
 
-		if (frame) {
-			this.onFrame(frame)
-			this._frameCount += 1
-		}
+		this._frameCount += 1
+		this.onFrame([frame[0], image])
 
 		if (this.totalFrames === this._frameCount) {
 			this.canRestart = true
@@ -87,7 +79,6 @@ class Player {
 
 	private onRestart() {
 		this.canRestart = false
-		this.decoder.restart()
 		this.baseTime = performance.now()
 		this._frameCount = 0
 	}
@@ -117,10 +108,6 @@ class Player {
 		if (this._isStop || !this._info) return
 		this.play()
 		this._isStop = true
-		while (this.frameQueue.length > 0) {
-			const frame = this.frameQueue.dequeue()
-			frame?.close()
-		}
 
 		this.onRestart()
 
