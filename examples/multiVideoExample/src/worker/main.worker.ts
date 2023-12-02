@@ -1,6 +1,6 @@
 import VideoWorker from './video.worker?worker'
 
-const videoURL = '/loopTest.mp4'
+const videoURL = '/loopTestBox.json'
 const Xnum = 3
 const Ynum = 3
 const originalW = 720
@@ -26,11 +26,10 @@ self.onmessage = async (event) => {
 
 		videosWorkers.forEach((worker, i) => {
 			worker.onmessage = async (event) => {
-				if (event.data.frame) {
+				if (event.data.image) {
 					const x = (i % Xnum) * videoW
 					const y = Math.floor(i / Xnum) * videoH
-					ctx.drawImage(event.data.frame, x, y, videoW, videoH)
-					event.data.frame.close()
+					ctx.drawImage(event.data.image, x, y, videoW, videoH)
 				}
 			}
 		})

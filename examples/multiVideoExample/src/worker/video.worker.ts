@@ -5,7 +5,8 @@ self.onmessage = async (event) => {
 		const video = new Player(event.data.url, {autoPlay: true, loop: true})
 		video.onFrame = (frame) => {
 			const worker = self as unknown as Worker
-			worker.postMessage({frame}, [frame])
+			const image = frame[1]
+			worker.postMessage({image}, [image])
 		}
 	}
 }
