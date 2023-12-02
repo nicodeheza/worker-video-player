@@ -2,12 +2,8 @@ import {Config, Info} from 'mp4box'
 import {MP4Demuxer} from '../demuxer'
 
 class Decoder {
-	private cache: EncodedVideoChunk[] = []
-	private decoder: VideoDecoder
-	private config?: Config
-
 	constructor(uri: string) {
-		this.decoder = new VideoDecoder({
+		const decoder = new VideoDecoder({
 			output: (frame) => {
 				this.onFrame(frame)
 			},
@@ -16,36 +12,17 @@ class Decoder {
 			}
 		})
 
-		const demuxer = new MP4Demuxer(uri, {
+		new MP4Demuxer(uri, {
 			onConfig: (config) => {
-				this.config = config
-				this.decoder.configure(config)
+				decoder.configure(config)
 			},
 			onChunk: (chunk) => {
-				this.cache.push(chunk)
-				this.decoder.decode(chunk)
+				decoder.decode(chunk)
 			}
 		})
-
-		demuxer.onInfoReady = (info) => {
-			this.onInfoReady(info)
-		}
 	}
-
-	onInfoReady(info: Info) {}
 
 	onFrame(frame: VideoFrame | null) {}
-
-	restart() {
-		if (this.cache.length === 0 || !this.config) return
-
-		this.decoder.reset()
-		this.decoder.configure(this.config)
-
-		this.cache.forEach((chunk) => {
-			this.decoder.decode(chunk)
-		})
-	}
 }
 
 export default Decoder

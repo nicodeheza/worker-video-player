@@ -6,6 +6,8 @@ interface Options {
 	autoPlay?: boolean
 }
 
+// do encoder
+
 class Player {
 	private frames?: _Frame[]
 	private baseTime = 0
