@@ -38,7 +38,7 @@ export class Transcoder {
 				{
 					width: displayWidth,
 					height: displayHeight,
-					timestamp: timestamp
+					timestamp: timestamp / 1000
 				},
 				image
 			])
