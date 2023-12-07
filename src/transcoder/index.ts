@@ -4,6 +4,7 @@ import {_Frame} from '../types'
 export class Transcoder {
 	private frames: _Frame[] = []
 	private canvas: HTMLCanvasElement
+	private lastTime = 0
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas
@@ -19,8 +20,8 @@ export class Transcoder {
 
 		const ctx = this.canvas.getContext('2d')
 
-		const onRead = () => this.onResult(JSON.stringify(this.frames))
-		let timeOut = setTimeout(onRead, 2000)
+		const onReady = () => this.onResult(JSON.stringify(this.frames))
+		let timeOut = setTimeout(onReady, 2000)
 
 		decoder.onFrame = (frame) => {
 			if (!frame) return
@@ -34,15 +35,14 @@ export class Transcoder {
 			const image = this.canvas.toDataURL('image/webp')
 			frame.close()
 
-			this.frames.push([
-				{
-					width: displayWidth,
-					height: displayHeight,
-					timestamp: timestamp / 1000
-				},
+			const time = timestamp / 1000 - this.lastTime
+
+			this.frames.push({
+				time,
 				image
-			])
-			timeOut = setTimeout(onRead, 2000)
+			})
+			this.lastTime = time
+			timeOut = setTimeout(onReady, 2000)
 		}
 	}
 
