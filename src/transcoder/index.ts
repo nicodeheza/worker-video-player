@@ -36,7 +36,6 @@ export class Transcoder {
 			frame.close()
 
 			const time = timestamp / 1000 - this.lastTimestamp
-			// console.log(`${time} = ${timestamp} / 1000 - ${this.lastTime}`)
 			this.lastTimestamp = timestamp / 1000
 
 			this.frames.push({
