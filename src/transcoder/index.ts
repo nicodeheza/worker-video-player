@@ -4,7 +4,7 @@ import {_Frame} from '../types'
 export class Transcoder {
 	private frames: _Frame[] = []
 	private canvas: HTMLCanvasElement
-	private lastTime = 0
+	private lastTimestamp = 0
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas
@@ -35,13 +35,15 @@ export class Transcoder {
 			const image = this.canvas.toDataURL('image/webp')
 			frame.close()
 
-			const time = timestamp / 1000 - this.lastTime
+			const time = timestamp / 1000 - this.lastTimestamp
+			// console.log(`${time} = ${timestamp} / 1000 - ${this.lastTime}`)
+			this.lastTimestamp = timestamp / 1000
 
 			this.frames.push({
 				time,
 				image
 			})
-			this.lastTime = time
+
 			timeOut = setTimeout(onReady, 2000)
 		}
 	}
